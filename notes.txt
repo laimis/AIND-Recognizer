@@ -1,0 +1,59 @@
+normalized Cartesian coordinates
+	use mean and standard deviation statistics and the standard score equation to account for speakers with different heights and arm length
+	
+	https://en.wikipedia.org/wiki/Standard_score
+	normalized = (x - mean) / standard deviation
+
+	so we need all means for rx, lx, ry, ly by speaker? and then deviations for all
+
+polar coordinates
+
+	calculate polar coordinates with Cartesian to polar equations
+	use the np.arctan2 function and swap the x and y axes to move the  00  to  2π2π  discontinuity to 12 o'clock instead of 3 o'clock; in other words, the normal break in radians value from  00  to  2π2π  occurs directly to the left of the speaker's nose, which may be in the signing area and interfere with results. By swapping the x and y axes, that discontinuity move to directly above the speaker's head, an area not generally used in signing.
+	
+delta difference
+	as described in Thad's lecture, use the difference in values between one frame and the next frames as features
+	pandas diff method and fillna method will be helpful for this one
+
+
+custom features
+	These are your own design; combine techniques used above or come up with something else entirely. We look forward to seeing what you come up with! Some ideas to get you started:
+		normalize using a feature scaling equation
+		normalize the polar coordinates
+		adding additional deltas
+
+features_norm = logL = 22.65197722447541
+features_delta = -256.56151832675334
+features_custom = logL = 337.65779760535673
+
+
+
+RUNNING GOOD STUFF
+
+CV:
+
+Training complete for FISH with 11 states with time 0.33280092160036406 seconds
+Training complete for BOOK with 5 states with time 3.035247816394199 seconds
+Training complete for VEGETABLE with 15 states with time 3.001128691803928 seconds
+Training complete for FUTURE with 3 states with time 3.07365889329734 seconds
+Training complete for JOHN with 13 states with time 37.22924493007207 seconds
+
+
+BIC
+
+n^2 + 2*d*n - 1
+
+Training complete for FISH with 5 states with time 0.3045129104248535 seconds
+Training complete for BOOK with 3 states with time 1.6375488938464766 seconds
+Training complete for VEGETABLE with 9 states with time 0.9155709296082686 seconds
+Training complete for FUTURE with 4 states with time 1.9495802269946578 seconds
+Training complete for JOHN with 2 states with time 15.059902838480134 seconds
+
+
+DIC
+
+Training complete for FISH with 3 states with time 1.2001328198055585 seconds
+Training complete for BOOK with 12 states with time 4.244597429964417 seconds
+Training complete for VEGETABLE with 13 states with time 3.396603811003975 seconds
+Training complete for FUTURE with 15 states with time 5.151247862221377 seconds
+Training complete for JOHN with 15 states with time 18.198279979567396 seconds
