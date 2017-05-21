@@ -99,10 +99,61 @@ class SelectorDIC(ModelSelector):
 class SelectorCV(ModelSelector):
     ''' select best model based on average log Likelihood of cross-validation folds
 
+    more info:
+    http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html
+
     '''
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        # TODO implement model selection using CV
-        raise NotImplementedError
+        # try out a range of components
+        # for each component count, create hmm, train using kfold data split approach
+        # record the best
+
+        selectedModel = None
+        bestScore = -1000000
+
+        for component_count in range(self.min_n_components, self.max_n_components + 1):
+
+            numberOfSplits = 3
+            if component_count < numberOfSplits:
+                numberOfSplits = component_count
+
+            if len(self.sequences) < component_count:
+                numberOfSplits = len(self.sequences)
+
+            split_method = KFold(n_splits= numberOfSplits)
+
+            scores = []
+
+            for cv_train_idx, cv_test_idx in split_method.split(self.sequences):
+                
+                try:
+                    hmm = GaussianHMM(n_components=component_count, n_iter=1000)
+
+                    # training data
+                    train, lengths = combine_sequences(cv_train_idx, self.sequences) 
+                    model = hmm.fit(train, lengths)
+
+                    # test data for score
+                    test, lengths = combine_sequences(cv_test_idx, self.sequences)
+                    score = hmm.score(test, lengths)
+                    
+                    scores.append(score)
+                except:
+                    # print("exception",component_count)
+                    pass
+            
+            # sometimes there is just no data
+            if len(scores) == 0:
+                continue
+
+            avgScore = float(sum(scores)) / len(scores)
+
+            if avgScore > bestScore:
+
+                selectedModel = hmm
+                bestScore = avgScore 
+        
+        return selectedModel
