@@ -66,6 +66,16 @@ class SelectorBIC(ModelSelector):
 
     http://www2.imm.dtu.dk/courses/02433/doc/ch6_slides.pdf
     Bayesian information criteria: BIC = -2 * logL + p * logN
+
+    I struggled with discoverint p formula, but a good lady on slack informed me with this:
+    # There is one thing a little different for our project though... 
+    # p = n*(n-1) + (n-1) + 2*d*n
+    #         = n^2 + 2*d*n - 1
+    #
+    # https://ai-nd.slack.com/archives/C3TSZ56U8/p1491489096694280
+    # and this
+    # https://ai-nd.slack.com/archives/C3V8A1MM4/p1493912001029860
+
     """
 
     def select(self):
@@ -76,8 +86,39 @@ class SelectorBIC(ModelSelector):
         """
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        # TODO implement model selection based on BIC scores
-        raise NotImplementedError
+        selectedModel = None
+        smallestScore = 1000000
+
+        for component_count in range(self.min_n_components, self.max_n_components + 1):
+    
+            bic = None
+
+            try:
+                hmm = GaussianHMM(n_components=component_count, n_iter=1000)
+                
+                hmm.fit(self.X, self.lengths)
+                
+                logL = hmm.score(self.X, self.lengths)
+                logN = np.log(sum(self.lengths))
+
+                # see the comments above how I got the p formula                
+                p = component_count ** 2 + 2 * len(self.sequences) * component_count  - 1
+
+                bic = -2 * logL + p * logN
+
+            except:
+                # print("exception",component_count)
+                pass
+            
+            if bic == None:
+                continue
+                
+            if bic < smallestScore:
+
+                selectedModel = hmm
+                smallestScore = bic 
+        
+        return selectedModel
 
 
 class SelectorDIC(ModelSelector):
