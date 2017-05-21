@@ -202,7 +202,10 @@ class SelectorCV(ModelSelector):
             if len(self.sequences) < component_count:
                 numberOfSplits = len(self.sequences)
 
-            split_method = KFold(n_splits= numberOfSplits)
+            if numberOfSplits == 1:
+                continue
+
+            split_method = KFold(n_splits = numberOfSplits)
 
             scores = []
 

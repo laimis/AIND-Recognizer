@@ -3,6 +3,10 @@ import pandas as pd
 from asl_data import AslDb
 
 
+from my_model_selectors import SelectorCV
+from my_model_selectors import SelectorBIC
+from my_model_selectors import SelectorDIC
+
 asl = AslDb() # initializes the database
 
 asl.df.ix[98,1]  # look at the data available for an individual frame
@@ -231,5 +235,54 @@ def train_with_dic():
 			print("Training failed for {}".format(word))
 
 
-train_with_dic()
+# train_with_dic()
+
+from my_model_selectors import SelectorConstant
+
+def train_all_words(features, model_selector):
+    training = asl.build_training(features)  # Experiment here with different feature sets defined in part 1
+    sequences = training.get_all_sequences()
+    Xlengths = training.get_all_Xlengths()
+    model_dict = {}
+    for word in training.words:
+        model = model_selector(sequences, Xlengths, word, 
+                        n_constant=3).select()
+        model_dict[word]=model
+    return model_dict
+
+models = train_all_words(features_ground, SelectorConstant)
+print("Number of word models returned = {}".format(len(models)))
+
+test_set = asl.build_test(features_ground)
+print("Number of test set items: {}".format(test_set.num_items))
+print("Number of test set sentences: {}".format(len(test_set.sentences_index)))
+
+from my_recognizer import recognize
+from asl_utils import show_errors
+
+def run_test(name, features, model_selector):
+	print("running ",name)
+
+	models = train_all_words(features, model_selector)
+	test_set = asl.build_test(features)
+	probabilities, guesses = recognize(models, test_set)
+	show_errors(guesses, test_set)	
+		
+# features = features_ground # change as needed
+# model_selector = SelectorConstant # change as needed
+
+run_test("Ground with SelectorCV", features_ground, SelectorCV)
+run_test("Delta with SelectorCV", features_delta, SelectorCV)
+run_test("Polar with SelectorCV", features_polar, SelectorCV)
+run_test("Custom with SelectorCV", features_custom, SelectorCV)
+
+run_test("Ground with SelectorBIC", features_ground, SelectorBIC)
+run_test("Delta with SelectorBIC", features_delta, SelectorBIC)
+run_test("Polar with SelectorBIC", features_polar, SelectorBIC)
+run_test("Custom with SelectorBIC", features_custom, SelectorBIC)
+
+run_test("Ground with SelectorDIC", features_ground, SelectorDIC)
+run_test("Delta with SelectorDIC", features_delta, SelectorDIC)
+run_test("Polar with SelectorDIC", features_polar, SelectorDIC)
+run_test("Custom with SelectorDIC", features_custom, SelectorDIC)
 
