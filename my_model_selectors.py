@@ -128,13 +128,51 @@ class SelectorDIC(ModelSelector):
     Document Analysis and Recognition, 2003. Proceedings. Seventh International Conference on. IEEE, 2003.
     http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.58.6208&rep=rep1&type=pdf
     DIC = log(P(X(i)) - 1/(M-1)SUM(log(P(X(all but i))
+
+    To understand DIC, I referred to these discussions:
+    https://ai-nd.slack.com/archives/C3V8A1MM4/p1491870173200006
+    https://ai-nd.slack.com/archives/C3V8A1MM4/p1494618695642425
     '''
 
     def select(self):
         warnings.filterwarnings("ignore", category=DeprecationWarning)
 
-        # TODO implement model selection based on DIC scores
-        raise NotImplementedError
+        selectedModel = None
+        bestScore = -1000000
+
+        for component_count in range(self.min_n_components, self.max_n_components + 1):
+    
+            dic = None
+
+            try:
+                hmm = GaussianHMM(n_components=component_count, n_iter=1000)
+                
+                hmm.fit(self.X, self.lengths)
+                
+                score = hmm.score(self.X, self.lengths)
+                
+                mean = 0.0
+                for word, Xlengths in self.hwords.items():
+                    if word != self.this_word:
+                        mean += hmm.score(Xlengths[0], Xlengths[1])
+                
+                mean = mean/(len(self.hwords)-1)
+
+                dic = score - mean
+
+            except:
+                # print("exception",component_count)
+                pass
+            
+            if dic == None:
+                continue
+                
+            if dic > bestScore:
+
+                selectedModel = hmm
+                bestScore = dic 
+        
+        return selectedModel
 
 
 class SelectorCV(ModelSelector):
